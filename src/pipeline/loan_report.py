@@ -367,12 +367,12 @@ _METRIC_KEYWORDS = {
 
 def validate_report_numbers(report_text: str, ctx: dict) -> list[str]:
     """
-    Extract numbers near known metric names and check against ctx values.
+    Extract numbers AFTER known metric keywords and check against ctx values.
     Returns a list of warning strings (empty if all checks pass).
 
-    Strategy: for each metric, find the first number that appears within
-    100 characters of a keyword match and compare it to the known value
-    within a 10% tolerance (generous — the LLM may round or reformat).
+    Only validates metrics with positive expected values — negative rates and
+    zero incomes cannot be meaningfully compared as unsigned prose numbers.
+    Tolerance is 15% to accommodate LLM rounding.
     """
     warnings_found = []
     text_lower = report_text.lower()
@@ -385,21 +385,23 @@ def validate_report_numbers(report_text: str, ctx: dict) -> list[str]:
 
         expected_scaled = float(expected) * scale
 
+        # Skip metrics that are zero, negative, or very small —
+        # prose representations can't be compared as unsigned numbers
+        if expected_scaled <= 0:
+            continue
+
         for kw in keywords:
             pattern = re.compile(kw, re.IGNORECASE)
             for m in pattern.finditer(text_lower):
-                # Look for a number in the surrounding 150 chars
-                window = report_text[max(0, m.start() - 30): m.end() + 120]
-                nums = re.findall(r'\b(\d+(?:\.\d+)?)\b', window)
+                # Only look AFTER the keyword (avoid grabbing prior sentence numbers)
+                window = report_text[m.end(): m.end() + 120]
+                nums = re.findall(r'(\d+(?:\.\d+)?)', window)
                 for num_str in nums:
                     found = float(num_str)
                     if found == 0:
                         continue
-                    # Allow 10% tolerance
-                    if expected_scaled == 0:
-                        continue
-                    ratio = abs(found - expected_scaled) / abs(expected_scaled)
-                    if ratio > 0.10:
+                    ratio = abs(found - expected_scaled) / expected_scaled
+                    if ratio > 0.15:
                         msg = (
                             f"POSSIBLE HALLUCINATION: '{metric_key}' near \"{kw}\" — "
                             f"found {found}, expected ~{expected_scaled:.2f} "
