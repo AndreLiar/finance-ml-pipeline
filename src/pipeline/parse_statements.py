@@ -10,9 +10,9 @@ import re
 import os
 from pathlib import Path
 
-from config import STATEMENTS_DIR, TRANSACTIONS_XLSX as OUTPUT_EXCEL
-from db import write_table
-from logger import get_logger
+from src.config import STATEMENTS_DIR, TRANSACTIONS_XLSX as OUTPUT_EXCEL
+from src.db import write_table
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
@@ -289,7 +289,7 @@ def main():
     df = df.sort_values('date_operation').reset_index(drop=True)
 
     # ── Validate parsed output ─────────────────────────────────────────────────
-    from schemas import validate_transactions
+    from src.schemas import validate_transactions
     df = validate_transactions(df, source="parse_statements")
 
     # ── Build monthly summary sheet ───────────────────────────────────────────

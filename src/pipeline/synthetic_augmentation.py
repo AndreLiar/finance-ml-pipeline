@@ -31,13 +31,13 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from config import (
+from src.config import (
     CREDITWORTHINESS_XLSX   as INPUT_MONTHLY,
     FINANCE_DB,
     DATA_DIR,
 )
-from db     import read_table, write_table, table_exists
-from logger import get_logger
+from src.db import read_table, write_table, table_exists
+from src.logger import get_logger
 
 log = get_logger(__name__)
 

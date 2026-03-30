@@ -8,7 +8,8 @@ Scripts import what they need instead of hardcoding values inline.
 from pathlib import Path
 
 # ── Project root ───────────────────────────────────────────────────────────────
-ROOT = Path(__file__).parent
+# config.py lives in src/ — root is one level up
+ROOT = Path(__file__).parent.parent
 
 # ── Account identifiers ────────────────────────────────────────────────────────
 ACCOUNT_CHEQUES = "23192700536"
@@ -17,7 +18,7 @@ ACCOUNT_OWNER   = "M Kanmegne Tabouguie Andre"
 
 # ── Input: raw PDF directories ─────────────────────────────────────────────────
 STATEMENTS_DIR = ROOT / "Documents/Documents Banque/Comptes" / f"Compte De Cheques - {ACCOUNT_CHEQUES}"
-LIVRET_A_DIR   = ROOT / "documents/Documents Banque/Epargne Et Placements" / f"Livret A-part - {ACCOUNT_LIVRET}"
+LIVRET_A_DIR   = ROOT / "Documents/Documents Banque/Epargne Et Placements" / f"Livret A-part - {ACCOUNT_LIVRET}"
 
 # ── Intermediate data files ────────────────────────────────────────────────────
 DATA_DIR = ROOT / "data"

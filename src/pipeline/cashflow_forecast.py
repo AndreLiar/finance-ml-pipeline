@@ -35,13 +35,13 @@ from sklearn.pipeline           import Pipeline
 from sklearn.metrics            import mean_absolute_error, mean_squared_error, r2_score
 from xgboost                    import XGBRegressor
 
-from config import (
+from src.config import (
     CREDITWORTHINESS_XLSX   as INPUT_MONTHLY,
     FEATURES_XLSX           as INPUT_FULL,
     CASHFLOW_RESULTS_XLSX   as OUTPUT_EXCEL,
 )
-from db import read_table, write_table, table_exists
-from logger import get_logger
+from src.db import read_table, write_table, table_exists
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
@@ -325,7 +325,7 @@ print(f"\nBest model (lowest MAE): {best}")
 
 # ── 16. PERSIST MODEL ARTIFACTS ───────────────────────────────────────────────
 
-from model_store import save_artifacts, data_hash as _data_hash
+from src.model_store import save_artifacts, data_hash as _data_hash
 
 _best_cf = summary_df.loc[summary_df['MAE'].idxmin(), 'Model']
 save_artifacts(

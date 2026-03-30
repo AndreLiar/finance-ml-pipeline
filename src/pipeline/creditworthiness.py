@@ -44,13 +44,13 @@ from sklearn.metrics            import (
 )
 from xgboost import XGBClassifier
 
-from config import (
+from src.config import (
     FEATURES_XLSX           as INPUT_EXCEL,
     LIVRET_A_XLSX           as INPUT_LIVRET,
     CREDITWORTHINESS_XLSX   as OUTPUT_EXCEL,
 )
-from db import read_table, write_table, table_exists
-from logger import get_logger
+from src.db import read_table, write_table, table_exists
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
@@ -403,7 +403,7 @@ print(monthly_df[profile_cols].tail(12).to_string(index=False))
 
 # ── 11. PERSIST MODEL ARTIFACTS ───────────────────────────────────────────────
 
-from model_store import save_artifacts, data_hash as _data_hash
+from src.model_store import save_artifacts, data_hash as _data_hash
 
 _best_name = summary.loc[summary['Accuracy'].idxmax(), 'Model']
 _best      = results[_best_name]

@@ -21,20 +21,20 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-from config import PIPELINE_STATUS_JSON, ROOT
+from src.config import PIPELINE_STATUS_JSON, ROOT
 
 # ── Stage definitions (in dependency order) ───────────────────────────────────
 STAGES = [
-    {"id": 1,  "name": "parse_statements",    "script": "parse_statements.py",    "optional": False},
-    {"id": 2,  "name": "drift_check",         "script": "drift_check.py",         "optional": True},
-    {"id": 3,  "name": "parse_livret_a",      "script": "parse_livret_a.py",      "optional": True},
-    {"id": 4,  "name": "feature_engineering", "script": "feature_engineering.py", "optional": False},
-    {"id": 5,  "name": "train_models",        "script": "train_models.py",        "optional": False},
-    {"id": 6,  "name": "nlp_classifier",      "script": "nlp_classifier.py",      "optional": False},
-    {"id": 7,  "name": "creditworthiness",    "script": "creditworthiness.py",    "optional": False},
-    {"id": 8,  "name": "cashflow_forecast",   "script": "cashflow_forecast.py",   "optional": False},
-    {"id": 9,  "name": "anomaly_detection",   "script": "anomaly_detection.py",   "optional": False},
-    {"id": 10, "name": "loan_report",         "script": "loan_report.py",         "optional": True},
+    {"id": 1,  "name": "parse_statements",    "script": "src/pipeline/parse_statements.py",    "optional": False},
+    {"id": 2,  "name": "drift_check",         "script": "src/pipeline/drift_check.py",         "optional": True},
+    {"id": 3,  "name": "parse_livret_a",      "script": "src/pipeline/parse_livret_a.py",      "optional": True},
+    {"id": 4,  "name": "feature_engineering", "script": "src/pipeline/feature_engineering.py", "optional": False},
+    {"id": 5,  "name": "train_models",        "script": "src/pipeline/train_models.py",        "optional": False},
+    {"id": 6,  "name": "nlp_classifier",      "script": "src/pipeline/nlp_classifier.py",      "optional": False},
+    {"id": 7,  "name": "creditworthiness",    "script": "src/pipeline/creditworthiness.py",    "optional": False},
+    {"id": 8,  "name": "cashflow_forecast",   "script": "src/pipeline/cashflow_forecast.py",   "optional": False},
+    {"id": 9,  "name": "anomaly_detection",   "script": "src/pipeline/anomaly_detection.py",   "optional": False},
+    {"id": 10, "name": "loan_report",         "script": "src/pipeline/loan_report.py",         "optional": True},
 ]
 
 

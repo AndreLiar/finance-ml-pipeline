@@ -9,7 +9,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from config import (
+from src.config import (
     FEATURES_XLSX           as _FEATURES_XLSX,
     CREDITWORTHINESS_XLSX   as _CREDIT_XLSX,
     CASHFLOW_RESULTS_XLSX   as _CASHFLOW_XLSX,

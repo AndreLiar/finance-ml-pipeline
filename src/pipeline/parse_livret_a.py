@@ -18,13 +18,13 @@ import numpy as np
 import pdfplumber
 from pathlib import Path
 
-from config import (
+from src.config import (
     LIVRET_A_DIR,
     TRANSACTIONS_XLSX  as CHEQUES_DATA,
     LIVRET_A_XLSX      as OUTPUT_LIVRET,
     MERGED_XLSX        as OUTPUT_MERGED,
 )
-from db import read_table, write_table, table_exists
+from src.db import read_table, write_table, table_exists
 
 print("=" * 60)
 print("LIVRET A STATEMENT PARSER")

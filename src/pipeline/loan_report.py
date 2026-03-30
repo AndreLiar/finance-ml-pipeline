@@ -34,19 +34,19 @@ from xgboost                   import XGBClassifier
 
 import openpyxl
 
-from config import (
+from src.config import (
     CREDITWORTHINESS_XLSX   as INPUT_EXCEL,
     LOAN_REPORT_TXT         as OUTPUT_TXT,
     CREDITWORTHINESS_XLSX   as OUTPUT_EXCEL,
     LLM_MODEL, LLM_TEMPERATURE, LLM_MAX_TOKENS,
     ROOT,
 )
-from logger import get_logger
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
 # ── Prompt template ────────────────────────────────────────────────────────────
-PROMPT_TEMPLATE_PATH = ROOT / "prompts" / "loan_report_v1.txt"
+PROMPT_TEMPLATE_PATH = ROOT / "src" / "prompts" / "loan_report_v1.txt"
 
 # Must stay in sync with creditworthiness.py CREDIT_FEATURES
 CREDIT_FEATURES = [

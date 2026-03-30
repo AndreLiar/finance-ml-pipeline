@@ -33,10 +33,10 @@ from sklearn.metrics            import (
 )
 from xgboost import XGBClassifier
 
-from config import FEATURES_XLSX as INPUT_EXCEL, NLP_RESULTS_XLSX as OUTPUT_EXCEL
-from db import read_table, write_table, table_exists
-from model_store import save_artifacts, data_hash as compute_data_hash
-from logger import get_logger
+from src.config import FEATURES_XLSX as INPUT_EXCEL, NLP_RESULTS_XLSX as OUTPUT_EXCEL
+from src.db import read_table, write_table, table_exists
+from src.model_store import save_artifacts, data_hash as compute_data_hash
+from src.logger import get_logger
 
 log = get_logger(__name__)
 

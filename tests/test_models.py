@@ -18,14 +18,14 @@ from pathlib import Path
 
 # ── model_store round-trip ────────────────────────────────────────────────────
 
-from model_store import save_artifacts, load_artifacts, load_metadata, artifacts_exist, data_hash
+from src.model_store import save_artifacts, load_artifacts, load_metadata, artifacts_exist, data_hash
 
 
 class TestModelStorePersistence:
     """Verify save/load round-trip for arbitrary artifact dicts."""
 
     def test_save_and_load_roundtrip(self, tmp_models_dir, monkeypatch):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         artifacts = {
             "weights": np.array([1.0, 2.0, 3.0]),
@@ -40,7 +40,7 @@ class TestModelStorePersistence:
         assert loaded["labels"] == artifacts["labels"]
 
     def test_metadata_sidecar_created(self, tmp_models_dir, monkeypatch):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         save_artifacts("meta_model", {"x": 1}, metrics={"f1": 0.88})
 
@@ -52,17 +52,17 @@ class TestModelStorePersistence:
         assert meta["metrics"]["f1"] == pytest.approx(0.88)
 
     def test_artifacts_exist_true_after_save(self, tmp_models_dir, monkeypatch):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         save_artifacts("exists_model", {"a": 1})
         assert artifacts_exist("exists_model")
 
     def test_artifacts_exist_false_before_save(self, tmp_models_dir, monkeypatch):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
         assert not artifacts_exist("never_saved_model")
 
     def test_load_nonexistent_raises(self, tmp_models_dir, monkeypatch):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
         with pytest.raises(FileNotFoundError):
             load_artifacts("does_not_exist")
 
@@ -120,7 +120,7 @@ class TestModelSnapshot:
 
     def test_snapshot_prediction_stable(self, tmp_models_dir, monkeypatch,
                                         sample_monthly_profile):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         artifacts = self._train_simple_model(sample_monthly_profile)
         save_artifacts("snapshot_rf", artifacts, metrics={"test": 1.0})
@@ -143,7 +143,7 @@ class TestModelSnapshot:
 
     def test_snapshot_proba_stable(self, tmp_models_dir, monkeypatch,
                                    sample_monthly_profile):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         artifacts = self._train_simple_model(sample_monthly_profile)
         save_artifacts("snapshot_rf_proba", artifacts)
@@ -165,7 +165,7 @@ class TestModelSnapshot:
 
     def test_metadata_records_artifact_keys(self, tmp_models_dir, monkeypatch,
                                             sample_monthly_profile):
-        monkeypatch.setattr("model_store.MODELS_DIR", tmp_models_dir)
+        monkeypatch.setattr("src.model_store.MODELS_DIR", tmp_models_dir)
 
         artifacts = self._train_simple_model(sample_monthly_profile)
         save_artifacts("snapshot_meta", artifacts, metrics={"accuracy": 0.90})

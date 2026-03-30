@@ -39,7 +39,7 @@ import sqlite3
 import pandas as pd
 from pathlib import Path
 
-from config import (
+from src.config import (
     DATA_DIR, FINANCE_DB,
     TRANSACTIONS_XLSX, FEATURES_XLSX, LIVRET_A_XLSX,
     MODEL_RESULTS_XLSX, NLP_RESULTS_XLSX,

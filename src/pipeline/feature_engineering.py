@@ -11,9 +11,9 @@ import numpy as np
 import re
 from pathlib import Path
 
-from config import TRANSACTIONS_XLSX as INPUT_EXCEL, FEATURES_XLSX as OUTPUT_EXCEL
-from db import read_table, write_table, table_exists
-from logger import get_logger
+from src.config import TRANSACTIONS_XLSX as INPUT_EXCEL, FEATURES_XLSX as OUTPUT_EXCEL
+from src.db import read_table, write_table, table_exists
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
@@ -31,7 +31,7 @@ log.info("Loaded %d transactions", len(df))
 print(f"\nLoaded {len(df)} transactions")
 
 # ── Validate input before proceeding ──────────────────────────────────────────
-from schemas import validate_transactions
+from src.schemas import validate_transactions
 df = validate_transactions(df, source="feature_engineering input")
 
 # ── 2. CLEAN ──────────────────────────────────────────────────────────────────

@@ -86,21 +86,21 @@ python run_pipeline.py
 Or run stages individually in order:
 
 ```bash
-python parse_statements.py       # → data/transactions.xlsx
-python feature_engineering.py    # → data/features.xlsx
-python train_models.py           # → data/model_results.xlsx + models/
-python nlp_classifier.py         # → data/nlp_results.xlsx + models/
-python creditworthiness.py       # → data/creditworthiness_results.xlsx + models/
-python cashflow_forecast.py      # → data/cashflow_results.xlsx + models/
-python anomaly_detection.py      # → data/anomaly_results.xlsx + models/
-python loan_report.py            # → data/loan_report.txt (requires Ollama)
-python visualize_results.py      # → data/charts/
+python src/pipeline/parse_statements.py       # → data/transactions.xlsx
+python src/pipeline/feature_engineering.py    # → data/features.xlsx
+python src/pipeline/train_models.py           # → data/model_results.xlsx + models/
+python src/pipeline/nlp_classifier.py         # → data/nlp_results.xlsx + models/
+python src/pipeline/creditworthiness.py       # → data/creditworthiness_results.xlsx + models/
+python src/pipeline/cashflow_forecast.py      # → data/cashflow_results.xlsx + models/
+python src/pipeline/anomaly_detection.py      # → data/anomaly_results.xlsx + models/
+python src/pipeline/loan_report.py            # → data/loan_report.txt (requires Ollama)
+python src/pipeline/visualize_results.py      # → data/charts/
 ```
 
 ### 4. Launch dashboard
 
 ```bash
-streamlit run dashboard.py
+streamlit run src/dashboard/dashboard.py
 ```
 
 Navigate to `http://localhost:8501`.
@@ -177,7 +177,7 @@ Requires Ollama running locally with Mistral:
 ```bash
 ollama serve
 ollama pull mistral
-python loan_report.py
+python src/pipeline/loan_report.py
 ```
 
 All inference is local — personal financial data is never sent to any external service.

@@ -34,7 +34,7 @@ import joblib
 from datetime import datetime
 from pathlib import Path
 
-from config import MODELS_DIR
+from src.config import MODELS_DIR
 
 
 def _meta_path(name: str) -> Path:

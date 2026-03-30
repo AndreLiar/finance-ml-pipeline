@@ -18,25 +18,25 @@ Scripts must be run in order — each stage depends on the previous stage's outp
 
 ```bash
 # 1. Parse PDFs into transactions
-python parse_statements.py       # → data/transactions.xlsx
+python src/pipeline/parse_statements.py       # → data/transactions.xlsx
 python parse_livret_a.py         # → data/livret_a_transactions.xlsx (optional)
 
 # 2. Feature engineering
-python feature_engineering.py   # → data/features.xlsx
+python src/pipeline/feature_engineering.py   # → data/features.xlsx
 
 # 3. Train models (can run independently after step 2)
-python train_models.py           # → data/model_results.xlsx
-python nlp_classifier.py         # → data/nlp_results.xlsx
-python creditworthiness.py       # → data/creditworthiness_results.xlsx
-python loan_report.py            # → data/loan_report.txt + new sheet in creditworthiness_results.xlsx (requires Ollama + mistral)
-python cashflow_forecast.py      # → data/cashflow_results.xlsx
-python anomaly_detection.py      # → data/anomaly_results.xlsx
+python src/pipeline/train_models.py           # → data/model_results.xlsx
+python src/pipeline/nlp_classifier.py         # → data/nlp_results.xlsx
+python src/pipeline/creditworthiness.py       # → data/creditworthiness_results.xlsx
+python src/pipeline/loan_report.py            # → data/loan_report.txt + new sheet in creditworthiness_results.xlsx (requires Ollama + mistral)
+python src/pipeline/cashflow_forecast.py      # → data/cashflow_results.xlsx
+python src/pipeline/anomaly_detection.py      # → data/anomaly_results.xlsx
 
 # 4. Generate static charts
-python visualize_results.py      # → data/charts/
+python src/pipeline/visualize_results.py      # → data/charts/
 
 # 5. Launch interactive dashboard
-streamlit run dashboard.py       # http://localhost:8501
+streamlit run src/dashboard/dashboard.py       # http://localhost:8501
 ```
 
 ## Architecture

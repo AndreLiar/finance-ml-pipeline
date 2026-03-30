@@ -2,7 +2,7 @@
 schemas.py — Pandera DataFrame schemas for pipeline validation.
 
 Usage:
-    from schemas import validate_transactions, validate_features
+    from src.schemas import validate_transactions, validate_features
 
 Each function raises pandera.errors.SchemaError with a human-readable
 message if the DataFrame does not conform to the expected schema.
@@ -12,7 +12,7 @@ import pandas as pd
 import pandera as pa
 from pandera import Column, Check, DataFrameSchema
 
-from config import DATA_DATE_MIN, DATA_DATE_MAX
+from src.config import DATA_DATE_MIN, DATA_DATE_MAX
 
 # ── 1. TRANSACTIONS SCHEMA ────────────────────────────────────────────────────
 # Output of parse_statements.py — raw parsed transactions

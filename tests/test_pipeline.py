@@ -169,20 +169,20 @@ class TestSchemaValidation:
     """
 
     def test_valid_transactions_pass(self, sample_transactions):
-        from schemas import validate_transactions
+        from src.schemas import validate_transactions
         result = validate_transactions(sample_transactions, source="test")
         assert isinstance(result, pd.DataFrame)
         assert len(result) > 0
 
     def test_empty_dataframe_raises(self):
-        from schemas import validate_transactions
+        from src.schemas import validate_transactions
         empty = pd.DataFrame(columns=['date_operation', 'description', 'type',
                                       'debit', 'credit', 'amount'])
         with pytest.raises(Exception):
             validate_transactions(empty, source="test")
 
     def test_missing_column_raises(self, sample_transactions):
-        from schemas import validate_transactions
+        from src.schemas import validate_transactions
         bad = sample_transactions.drop(columns=['description'])
         with pytest.raises(Exception):
             validate_transactions(bad, source="test")

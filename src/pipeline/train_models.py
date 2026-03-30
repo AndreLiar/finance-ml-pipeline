@@ -27,9 +27,9 @@ from sklearn.metrics        import (
 )
 from xgboost import XGBClassifier
 
-from config import FEATURES_XLSX as INPUT_EXCEL, MODEL_RESULTS_XLSX as OUTPUT_EXCEL
-from db import read_table, write_table, table_exists
-from logger import get_logger
+from src.config import FEATURES_XLSX as INPUT_EXCEL, MODEL_RESULTS_XLSX as OUTPUT_EXCEL
+from src.db import read_table, write_table, table_exists
+from src.logger import get_logger
 
 log = get_logger(__name__)
 
@@ -268,7 +268,7 @@ cm_df         = pd.DataFrame(cm, index=class_names, columns=class_names)
 
 # ── 10. GROUND TRUTH EVALUATION (manual_labels.csv) ──────────────────────────
 
-from config import DATA_DIR as _DATA_DIR
+from src.config import DATA_DIR as _DATA_DIR
 
 _manual_path = _DATA_DIR / "manual_labels.csv"
 _gt_f1 = None
@@ -315,7 +315,7 @@ else:
 
 # ── 11. PERSIST MODEL ARTIFACTS ──────────────────────────────────────────────
 
-from model_store import save_artifacts, data_hash as _data_hash
+from src.model_store import save_artifacts, data_hash as _data_hash
 
 _metrics = {
     "best_model":    best_model_name,

@@ -5,7 +5,7 @@ All pipeline scripts call read_table() / write_table() / append_table()
 instead of pd.read_excel() / ExcelWriter. The database path comes from config.
 
 Usage:
-    from db import read_table, write_table, append_table, db_exists
+    from src.db import read_table, write_table, append_table, db_exists
 
     df = read_table("transactions")
     write_table(df, "transactions")
@@ -17,7 +17,7 @@ import pandas as pd
 from pathlib import Path
 from contextlib import contextmanager
 
-from config import FINANCE_DB
+from src.config import FINANCE_DB
 
 
 @contextmanager

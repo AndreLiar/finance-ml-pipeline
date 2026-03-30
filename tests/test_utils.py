@@ -13,7 +13,7 @@ import numpy as np
 
 # ── parse_amount ──────────────────────────────────────────────────────────────
 
-from parse_statements import parse_amount
+from src.pipeline.parse_statements import parse_amount
 
 
 class TestParseAmount:
@@ -106,7 +106,7 @@ class TestAssignCategory:
 
 # ── validate_report_numbers (loan_report.py) ─────────────────────────────────
 
-from loan_report import validate_report_numbers
+from src.pipeline.loan_report import validate_report_numbers
 
 
 class TestValidateReportNumbers:
@@ -153,7 +153,7 @@ class TestValidateReportNumbers:
 
 # ── build_constraints (loan_report.py) ───────────────────────────────────────
 
-from loan_report import build_constraints
+from src.pipeline.loan_report import build_constraints
 
 
 class TestBuildConstraints:
