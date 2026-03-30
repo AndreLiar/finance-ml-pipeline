@@ -1,0 +1,85 @@
+stages:
+  parse_statements:
+    cmd: python parse_statements.py
+    deps:
+      - parse_statements.py
+      - config.py
+      - schemas.py
+    outs:
+      - data/transactions.xlsx
+      - data/finance.db
+
+  drift_check:
+    cmd: python drift_check.py
+    deps:
+      - drift_check.py
+      - config.py
+      - data/finance.db
+    outs:
+      - data/drift_reports
+
+  feature_engineering:
+    cmd: python feature_engineering.py
+    deps:
+      - feature_engineering.py
+      - config.py
+      - schemas.py
+      - data/transactions.xlsx
+    outs:
+      - data/features.xlsx
+
+  train_models:
+    cmd: python train_models.py
+    deps:
+      - train_models.py
+      - config.py
+      - data/features.xlsx
+    outs:
+      - data/model_results.xlsx
+      - models/category_classifier.joblib
+      - models/category_classifier_meta.json
+
+  nlp_classifier:
+    cmd: python nlp_classifier.py
+    deps:
+      - nlp_classifier.py
+      - config.py
+      - data/features.xlsx
+    outs:
+      - data/nlp_results.xlsx
+      - models/nlp_classifier.joblib
+      - models/nlp_classifier_meta.json
+
+  creditworthiness:
+    cmd: python creditworthiness.py
+    deps:
+      - creditworthiness.py
+      - config.py
+      - data/features.xlsx
+    outs:
+      - data/creditworthiness_results.xlsx
+      - models/creditworthiness.joblib
+      - models/creditworthiness_meta.json
+
+  cashflow_forecast:
+    cmd: python cashflow_forecast.py
+    deps:
+      - cashflow_forecast.py
+      - config.py
+      - data/creditworthiness_results.xlsx
+      - data/features.xlsx
+    outs:
+      - data/cashflow_results.xlsx
+      - models/cashflow_forecaster.joblib
+      - models/cashflow_forecaster_meta.json
+
+  anomaly_detection:
+    cmd: python anomaly_detection.py
+    deps:
+      - anomaly_detection.py
+      - config.py
+      - data/features.xlsx
+    outs:
+      - data/anomaly_results.xlsx
+      - models/anomaly_detection.joblib
+      - models/anomaly_detection_meta.json

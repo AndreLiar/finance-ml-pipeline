@@ -1,0 +1,17 @@
+pdfplumber
+pandas
+openpyxl
+numpy
+scikit-learn
+xgboost
+matplotlib
+seaborn
+plotly
+ollama
+pandera
+streamlit-authenticator
+pyyaml
+# Phase 3 additions
+evidently
+pytest
+dvc

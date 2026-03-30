@@ -1,0 +1,71 @@
+# ══════════════════════════════════════════════════════════════════
+# PERSONAL / SENSITIVE DATA — NEVER PUSH
+# ══════════════════════════════════════════════════════════════════
+
+# Bank statement PDFs and all personal documents
+Documents/
+documents/
+**/*.pdf
+
+# Auth credentials
+credentials.yaml
+.env
+*.key
+*.secret
+
+# ══════════════════════════════════════════════════════════════════
+# GENERATED DATA — gitignored, tracked by DVC instead
+# ══════════════════════════════════════════════════════════════════
+
+# Pipeline outputs (xlsx + SQLite)
+data/
+!data/.gitkeep
+
+# Trained model artifacts
+models/
+!models/.gitkeep
+
+# ══════════════════════════════════════════════════════════════════
+# RUNTIME / LOCAL STATE
+# ══════════════════════════════════════════════════════════════════
+
+# Logs
+logs/
+*.log
+
+# Evidently drift reports
+data/drift_reports/
+
+# ══════════════════════════════════════════════════════════════════
+# PYTHON
+# ══════════════════════════════════════════════════════════════════
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.egg
+
+# ══════════════════════════════════════════════════════════════════
+# IDE / OS
+# ══════════════════════════════════════════════════════════════════
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ══════════════════════════════════════════════════════════════════
+# DVC — pointer files are committed, cache is not
+# ══════════════════════════════════════════════════════════════════
+/tmp/
+.dvc/cache/
+.dvc/tmp/
