@@ -22,7 +22,7 @@ Models:
   - Logistic Regression
   - Random Forest
   - XGBoost
-  - VotingClassifier (ensemble of all 3)  ← main deliverable
+  - VotingClassifier (ensemble of all 3)  <- main deliverable
 
 Output:
   data/creditworthiness_results.xlsx
@@ -70,17 +70,21 @@ df['year_month'] = df['date_operation'].dt.to_period('M').astype(str)
 # Load Livret A data for true income picture
 livret_income = {}           # month -> salary deposited into Livret A
 livret_transfers_in = {}     # month -> amount Livret A sent to Compte Cheques (funds spending)
+livret_net_flow = {}         # month -> net Livret A flow (positive=saving, negative=drawing down)
 if INPUT_LIVRET.exists():
     livret_monthly = pd.read_excel(INPUT_LIVRET, sheet_name="Monthly Livret A")
     for _, row in livret_monthly.iterrows():
         ym = row['year_month']
         livret_income[ym]       = row['savings_deposits']      # real salary
         livret_transfers_in[ym] = row['transfers_to_checking'] # funding the checking account
+        livret_net_flow[ym]     = row.get('net', 0.0)          # net monthly flow
     print(f"Livret A income loaded for {len(livret_income)} months")
     # Estimate average monthly salary for gap months (Feb-Aug 2025 not in statements)
     known_salaries = [v for v in livret_income.values() if v > 0]
     avg_salary = np.mean(known_salaries) if known_salaries else 0.0
     print(f"  Known avg monthly salary: EUR{avg_salary:,.0f}")
+    n_drawdown = sum(1 for v in livret_net_flow.values() if v < 0)
+    print(f"  Livret A drawdown months: {n_drawdown} / {len(livret_net_flow)}")
 else:
     avg_salary = 0.0
     print("No Livret A data found — income will be Compte Cheques credits only")
@@ -103,7 +107,7 @@ for ym, grp in df.groupby('year_month'):
     # ── True income logic ───────────────────────────────────────────────────
     # Compte Cheques CREDIT rows = Livret A transfers + occasional direct credits.
     # We separate "real salary" (Livret A deposits) from "internal transfers"
-    # (Livret A → Checking, which just fund spending, not new income).
+    # (Livret A -> Checking, which just fund spending, not new income).
     #
     # For months WITH Livret A statement data: use savings_deposits as income.
     # For months WITHOUT Livret A data but with checking transfers: use transfers
@@ -160,6 +164,10 @@ for ym, grp in df.groupby('year_month'):
     transfer_spend = debits[debits['category'] == 'TRANSFER']['debit'].sum()
     transfer_ratio = transfer_spend / spend if spend > 0 else 0.0
 
+    # Livret A net flow for this month (0 for pre-Livret-A months)
+    livret_net = livret_net_flow.get(ym, 0.0)
+    livret_drawdown = 1 if livret_net < 0 else 0
+
     monthly_rows.append({
         'year_month':          ym,
         'income':              round(income, 2),
@@ -176,6 +184,8 @@ for ym, grp in df.groupby('year_month'):
         'avg_tx_amount':       round(avg_tx, 2),
         'max_tx_amount':       round(max_tx, 2),
         'debt_payments':       round(debt_payments, 2),
+        'livret_net':          round(livret_net, 2),
+        'livret_drawdown':     livret_drawdown,
     })
 
 monthly_df = pd.DataFrame(monthly_rows).sort_values('year_month').reset_index(drop=True)
@@ -197,6 +207,17 @@ monthly_df['avg_3m_spend']  = monthly_df['spend'].rolling(3, min_periods=1).mean
 monthly_df['spend_trend']   = (
     monthly_df['spend'].diff().rolling(3, min_periods=1).mean().fillna(0)
 )
+
+# Livret A rolling features — how often is the savings buffer being drawn down?
+monthly_df['livret_drawdown_freq'] = (
+    monthly_df['livret_drawdown'].rolling(6, min_periods=1).mean()
+)
+# Cumulative net Livret A flow / average spend = months of savings runway
+monthly_df['livret_cumulative_net'] = monthly_df['livret_net'].cumsum()
+monthly_df['savings_buffer_ratio'] = (
+    monthly_df['livret_cumulative_net']
+    / monthly_df['avg_3m_spend'].replace(0, np.nan)
+).fillna(0).clip(-6, 24)  # cap at ±24 months of runway
 
 print(f"\nMonthly feature matrix: {monthly_df.shape}")
 print("\nSample monthly profile:")
@@ -236,6 +257,14 @@ def compute_credit_score(row):
     if row['cash_ratio'] > 0.3:     score -= 5
     if row['transfer_ratio'] > 0.2: score -= 5
 
+    # Livret A buffer signals
+    if row['livret_drawdown_freq'] == 0:      score += 8   # never dipped into savings
+    elif row['livret_drawdown_freq'] <= 0.2:  score += 3   # rarely dips
+    elif row['livret_drawdown_freq'] > 0.5:   score -= 10  # regularly drawing down savings
+    if row['savings_buffer_ratio'] >= 3:      score += 7   # 3+ months of runway
+    elif row['savings_buffer_ratio'] >= 1:    score += 3
+    elif row['savings_buffer_ratio'] < 0:     score -= 8   # cumulative net negative
+
     return max(0, min(100, score))
 
 monthly_df['credit_score'] = monthly_df.apply(compute_credit_score, axis=1)
@@ -263,6 +292,8 @@ CREDIT_FEATURES = [
     'cash_ratio', 'transfer_ratio', 'avg_tx_amount', 'max_tx_amount',
     'tx_count', 'avg_3m_income', 'avg_3m_spend', 'spend_trend',
     'debt_payments',
+    # Livret A buffer features
+    'livret_net', 'livret_drawdown_freq', 'savings_buffer_ratio',
 ]
 
 le = LabelEncoder()
@@ -466,6 +497,9 @@ with pd.ExcelWriter(OUTPUT_EXCEL, engine='openpyxl') as writer:
             '3-month rolling average spend',
             'Spend trend: direction of spending (positive = increasing)',
             'Total fixed debt payments',
+            'Livret A net flow: monthly net (positive=saving, negative=drawing down)',
+            'Livret A drawdown frequency: % of last 6 months with net negative Livret A flow',
+            'Savings buffer ratio: cumulative Livret A net / avg monthly spend (months of runway)',
         ]
     })
     explain.to_excel(writer, sheet_name='Feature Definitions', index=False)
@@ -476,7 +510,7 @@ write_table(monthly_df,   "monthly_credit")
 write_table(fi_df,        "credit_feature_importance")
 write_table(cv_df,        "credit_cross_validation")
 write_table(explain,      "credit_feature_definitions")
-log.info("Creditworthiness scoring complete → %s", OUTPUT_EXCEL)
+log.info("Creditworthiness scoring complete -> %s", OUTPUT_EXCEL)
 
 print(f"\nResults saved to: {OUTPUT_EXCEL}")
 print("\nSheets:")

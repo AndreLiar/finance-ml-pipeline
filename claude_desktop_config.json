@@ -1,0 +1,12 @@
+{
+  "_comment": "Claude Desktop MCP configuration for FinanceAdvisor server.",
+  "_instructions": "Copy this file to: %APPDATA%\\Claude\\claude_desktop_config.json",
+  "mcpServers": {
+    "finance": {
+      "command": "py",
+      "args": ["-3", "-m", "src.mcp.finance_mcp_server"],
+      "cwd": "C:\\Users\\ktayl\\Desktop\\devprojectall\\FinanceProjects",
+      "env": {}
+    }
+  }
+}

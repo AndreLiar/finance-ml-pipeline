@@ -69,7 +69,7 @@ def save_artifacts(name: str, artifacts: dict, metrics: dict = None, data_hash: 
     }
     _meta_path(name).write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    print(f"  [model_store] Saved '{name}' → {_model_path(name).name}")
+    print(f"  [model_store] Saved '{name}' -> {_model_path(name).name}")
     if metrics:
         metrics_str = "  ".join(f"{k}={v:.4f}" if isinstance(v, float) else f"{k}={v}"
                                 for k, v in metrics.items())

@@ -1,0 +1,102 @@
+You are a senior credit analyst at a French retail bank writing an official loan decision report.
+Your task: write a complete, professional report based strictly on the financial data provided below.
+
+Rules:
+- Do NOT invent or estimate any numbers — use only the facts given.
+- Write in formal English, third person.
+- Minimum 600 words total across all sections.
+- Each section header must appear exactly as written below (## 1. EXECUTIVE SUMMARY, etc.).
+
+{constraints_block}
+
+=== MANDATORY NUMBERS — copy these exactly, do not round or approximate ===
+These are the only financial figures you are permitted to use in your report.
+Copy each one verbatim when you reference it. Do not write "approximately" or "around".
+
+  Credit score            : {credit_score} / 100
+  DSCR                    : {dscr:.2f}x
+  Savings rate            : {savings_rate:.1%}
+  Overdraft frequency     : {overdraft_freq:.1%}
+  Expense volatility      : EUR{expense_volatility:.0f}
+  Income stability        : {income_stability:.3f}
+  3-month average income  : EUR{avg_3m_income:.0f}
+  3-month average spend   : EUR{avg_3m_spend:.0f}
+  Monthly spend trend     : EUR{spend_trend:+.0f}/month
+  Essential spend ratio   : {essential_ratio:.1%}
+  Discretionary ratio     : {discretionary_ratio:.1%}
+  Cash withdrawal ratio   : {cash_ratio:.1%}
+  Transfer ratio          : {transfer_ratio:.1%}
+  Monthly debt payments   : EUR{debt_payments:.0f}
+  Avg transaction amount  : EUR{avg_tx_amount:.0f}
+  Largest transaction     : EUR{max_tx_amount:.0f}
+  Transaction count/month : {tx_count}
+  Model confidence        : {confidence:.1f}%
+  LOW_RISK probability    : {low_risk_pct:.1f}%
+  MEDIUM_RISK probability : {medium_risk_pct:.1f}%
+  HIGH_RISK probability   : {high_risk_pct:.1f}%
+
+=== APPLICANT FINANCIAL DATA ===
+Report date       : {report_date}
+Analysis period   : {analysis_month}
+Ensemble model    : {ensemble_label} (model confidence: {confidence:.1f}%)
+Rule-based label  : {stored_label}
+Credit score      : {credit_score} / 100
+
+Key Financial Metrics:
+  Debt Service Coverage Ratio (DSCR) : {dscr:.2f}x      [benchmark: >=1.5 acceptable | >=3.0 strong]
+  Savings Rate                        : {savings_rate:.1%}        [benchmark: >=10% healthy | <0% deficit]
+  Overdraft Frequency (6 months)      : {overdraft_freq:.1%}        [benchmark: 0% ideal]
+  Expense Volatility (3-month std)    : EUR{expense_volatility:.0f}      [benchmark: <EUR300 stable | >EUR900 volatile]
+  Income Stability (coeff. variation) : {income_stability:.3f}       [benchmark: <0.30 stable | >1.0 unstable]
+  3-Month Average Income              : EUR{avg_3m_income:.0f}
+  3-Month Average Spend               : EUR{avg_3m_spend:.0f}
+  Monthly Spend Trend                 : EUR{spend_trend:+.0f}/month ({spend_trend_direction})
+  Essential Spend Ratio               : {essential_ratio:.1%}        [groceries, health, insurance, telecom]
+  Discretionary Spend Ratio           : {discretionary_ratio:.1%}        [restaurants, shopping, travel]
+  Cash Withdrawal Ratio               : {cash_ratio:.1%}        [benchmark: <15% transparent]
+  Transfer Ratio                      : {transfer_ratio:.1%}        [benchmark: <20% acceptable]
+  Monthly Debt Payments               : EUR{debt_payments:.0f}
+  Average Transaction Amount          : EUR{avg_tx_amount:.0f}
+  Largest Single Transaction          : EUR{max_tx_amount:.0f}
+  Monthly Transaction Count           : {tx_count}
+
+Top predictive features (Random Forest importance ranking):
+{top_features_formatted}
+
+Model probability breakdown:
+  LOW_RISK: {low_risk_pct:.1f}%  |  MEDIUM_RISK: {medium_risk_pct:.1f}%  |  HIGH_RISK: {high_risk_pct:.1f}%
+
+Identified positive signals:
+{positive_signals_formatted}
+
+Identified risk signals:
+{risk_signals_formatted}
+
+=== WRITE THE FOLLOWING REPORT — complete every section ===
+
+## 1. EXECUTIVE SUMMARY
+[2-3 sentences. State the credit decision, the score out of 100, and the overall financial picture in plain language.
+Use the mandatory numbers above — write the credit score as "{credit_score}/100".]
+
+## 2. RISK DECISION RATIONALE
+[Explain what {ensemble_label} means for this applicant's loan eligibility.
+Reference the model confidence of {confidence:.1f}% and the probability breakdown ({high_risk_pct:.1f}% HIGH_RISK).
+Identify the top 2-3 features that most influenced this classification and explain why each matters from a lender's perspective.
+Quote the actual metric values from the MANDATORY NUMBERS block above.]
+
+## 3. POSITIVE FINANCIAL SIGNALS
+[Acknowledge the genuine financial strengths. Be specific — cite the actual metric values from the MANDATORY NUMBERS block.
+Explain why each positive signal is meaningful to a lender.]
+
+## 4. AREAS REQUIRING IMPROVEMENT
+[For each risk signal, give one concrete and actionable recommendation.
+Be specific: state what behaviour to change, by how much, and over what timeframe.
+Connect each recommendation back to how it would affect the credit score.]
+
+## 5. FINAL RECOMMENDATION
+[Choose exactly one: APPROVE / CONDITIONAL APPROVAL / DECLINE
+
+If CONDITIONAL APPROVAL: state the exact conditions that must be met (e.g. maintain savings rate above 10% for 3 consecutive months) before unconditional approval is granted.
+If DECLINE: state the specific improvements and minimum timeframe required before reapplication.
+
+End with one sentence summarising the bank's overall position on this applicant.]

@@ -8,6 +8,7 @@ Each function raises pandera.errors.SchemaError with a human-readable
 message if the DataFrame does not conform to the expected schema.
 """
 
+import numpy as np
 import pandas as pd
 import pandera as pa
 from pandera import Column, Check, DataFrameSchema
@@ -42,16 +43,16 @@ TRANSACTIONS_SCHEMA = DataFrameSchema(
             float,
             checks=[
                 Check(lambda s: s.notna().all(), error="amount contains NaN"),
-                Check(lambda s: s.apply(lambda x: x == x and x != float('inf') and x != float('-inf')),
-                      element_wise=True,
-                      error="amount contains inf"),
+                Check(lambda s: np.isfinite(s).all(), error="amount contains inf"),
             ],
             nullable=False,
         ),
         "type": Column(
             str,
-            checks=Check.isin(["DEBIT", "CREDIT"],
-                              error="type must be DEBIT or CREDIT"),
+            # Raw parse output may include BOTH/UNKNOWN — these are filtered
+            # out by feature_engineering.py before any ML step.
+            checks=Check.isin(["DEBIT", "CREDIT", "BOTH", "UNKNOWN"],
+                              error="type must be DEBIT, CREDIT, BOTH, or UNKNOWN"),
             nullable=False,
         ),
     },

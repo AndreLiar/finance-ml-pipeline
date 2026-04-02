@@ -15,3 +15,16 @@ pyyaml
 evidently
 pytest
 dvc
+# LangChain + Ollama integration (LangChain 1.x LCEL)
+langchain
+langchain-core
+langchain-ollama
+langchain-community
+# Phase A — Vector DB (semantic RAG)
+qdrant-client
+sentence-transformers
+# Note: chromadb incompatible with Python 3.14 (requires Rust/MSVC build tools)
+# nomic-embed-text: ollama pull nomic-embed-text (used when Ollama is running)
+# Phase B — MCP Server
+fastmcp
+mcp

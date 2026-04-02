@@ -282,7 +282,7 @@ save_artifacts(
     data_hash=compute_data_hash(df),
 )
 
-log.info("NLP classifier complete → %s", OUTPUT_EXCEL)
+log.info("NLP classifier complete -> %s", OUTPUT_EXCEL)
 
 print(f"\nResults saved to: {OUTPUT_EXCEL}")
 print("\nSheets: Model Comparison | Per-class Reports | Top TF-IDF Terms | Vocabulary")

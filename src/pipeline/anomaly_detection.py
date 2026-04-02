@@ -271,7 +271,7 @@ save_artifacts(
     data_hash=compute_data_hash(debits[FEATURES].fillna(0)),
 )
 
-log.info("Anomaly detection complete → %s", OUTPUT_EXCEL)
+log.info("Anomaly detection complete -> %s", OUTPUT_EXCEL)
 
 print(f"\nResults saved to: {OUTPUT_EXCEL}")
 print("\nSheets:")

@@ -62,6 +62,14 @@ print(f"After cleaning: {len(df)} transactions")
 # Rule-based auto-labeling using keywords in description
 
 CATEGORY_RULES = {
+    # SAVINGS and INVESTMENT must come before SALARY — virements to Livret A / Trade Republic
+    # would otherwise match the broad VIREMENT pattern in SALARY
+    'SAVINGS':      [r'LIVRET', r'EPARGNE', r'VIREMENT INTERNE'],
+    'INVESTMENT':   [r'TRADE REPUBLIC', r'TRADEREPUBLIC', r'DEGIRO', r'BOURSO',
+                     r'INVESTISSEMENT', r'BOURSE'],
+    'FINES':        [r'AMENDE\.GOUV', r'AMENDE GOV', r'AMENDEFR'],
+    'FINANCE':      [r'3X 4X ONEY', r'ONEY\b', r'CETELEM', r'COFIDIS'],
+    'RENT':         [r'LOYER', r'BAIL', r'PROPRIETE', r'IMMOBILIERE', r'IMMOBILIER\b'],
     'SALARY':       [r'VIREMENT', r'SALAIRE', r'LEOPOLD', r'PAIE', r'VIR\s+INST',
                      r'VIR INST'],
     'GROCERIES':    [r'CARREFOUR', r'LIDL', r'AUCHAN', r'MONOPRIX', r'SUPERMARCHE',
@@ -92,15 +100,12 @@ CATEGORY_RULES = {
     'TELECOM':      [r'ORANGE', r'SFR', r'BOUYGUES', r'FREE', r'MOBILE', r'INTERNET',
                      r'RECHARGE'],
     'CASH':         [r'RETRAIT', r'DAB', r'REM CHQ', r'CHEQUE'],
-    'SAVINGS':      [r'LIVRET', r'EPARGNE', r'VIREMENT INTERNE', r'TRADE REPUBLIC',
-                     r'TRADEREPUBLIC', r'INVESTISSEMENT', r'BOURSE'],
     'ENTERTAINMENT':[r'CINEMA', r'NETFLIX', r'SPOTIFY', r'GAMING', r'SPORT',
                      r'LOISIR', r'BetM', r'PARI', r'BET', r'GYM', r'FITNESS',
                      r'SALLE\s', r'SUNLIGHT', r'MUSCULATION', r'PISCINE',
                      r'THEATRE', r'CONCERT', r'DISNEY', r'PRIME VIDEO'],
     'UTILITIES':    [r'EDF', r'GDF', r'ENGIE', r'EAU\b', r'ELECTRICITE', r'GAZ',
                      r'COURBEN', r'COURBEX', r'COUDFR', r'IMMEUB'],
-    'RENT':         [r'LOYER', r'BAIL', r'PROPRIETE'],
     'AI_SERVICES':  [r'OPENAI', r'CHATGPT', r'ANTHROPIC', r'CLAUDE', r'MIDJOURNEY',
                      r'HTTPSOPENAI', r'SUBSCUS'],
     'TRANSFER':     [r'TAPTAP', r'TAPTAP SEND', r'WERO', r'WESTERN UNION',
@@ -122,8 +127,29 @@ def assign_category(desc: str) -> str:
 
 df['category'] = df['description'].apply(assign_category)
 
+# ── 3b. APPLY GROUND TRUTH CORRECTIONS ───────────────────────────────────────
+# Overrides rule-based labels with verified corrections from data/labels/.
+# Pattern-based corrections fix systematic errors at scale (e.g. all Livret A
+# transfers were SALARY, now SAVINGS). tx_id-level corrections fix individual
+# transactions. Labels are read from data/labels/category_corrections.csv.
+try:
+    from src.pipeline.label_loader import apply_category_corrections
+    n_before = len(df)
+    df = apply_category_corrections(df)
+    n_corrected = int(df.get('correction_applied', pd.Series([False]*len(df))).sum())
+    log.info("Ground truth corrections applied: %d / %d transactions relabeled", n_corrected, n_before)
+    print(f"Ground truth corrections applied: {n_corrected} transactions relabeled")
+    # Drop the helper column before continuing
+    if 'correction_applied' in df.columns:
+        df = df.drop(columns=['correction_applied'])
+    if 'tx_id' in df.columns:
+        df = df.drop(columns=['tx_id'])
+except Exception as _exc:
+    log.warning("Could not apply ground truth corrections: %s", _exc)
+    print(f"Warning: ground truth corrections skipped ({_exc})")
+
 cat_counts = df['category'].value_counts()
-print(f"\nCategory distribution:\n{cat_counts.to_string()}")
+print(f"\nCategory distribution (after corrections):\n{cat_counts.to_string()}")
 
 # ── 4. DATE FEATURES ──────────────────────────────────────────────────────────
 
@@ -191,7 +217,7 @@ df = df.merge(monthly, on='year_month', how='left')
 
 # ── 8. CREDITWORTHINESS SCORE (target for supervised ML) ─────────────────────
 # Rule-based scoring to generate a label for training
-# Score 0-100 → mapped to Low / Medium / High
+# Score 0-100 -> mapped to Low / Medium / High
 
 def credit_score(row):
     score = 50  # baseline
@@ -263,7 +289,7 @@ write_table(feature_matrix, "feature_matrix")
 write_table(df,             "features_full")
 write_table(monthly,        "monthly_aggregates")
 write_table(cat_summary,    "category_summary")
-log.info("Feature engineering complete: %d transactions, %d features → %s",
+log.info("Feature engineering complete: %d transactions, %d features -> %s",
          len(df), len(ML_FEATURES), OUTPUT_EXCEL)
 
 print(f"\n{'='*55}")

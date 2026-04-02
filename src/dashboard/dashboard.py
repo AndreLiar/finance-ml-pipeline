@@ -268,6 +268,12 @@ with st.sidebar:
         "📉 Cash Flow Forecast",
         "📋 Loan Decision Report",
         "🔍 Transaction Explorer",
+        "💬 Conseiller Financier IA",
+        "─── AI Agents ───",
+        "🤖 Agent: Financial Advisor",
+        "🔎 Agent: Anomaly Investigator",
+        "⚙️ Agent: Pipeline Supervisor",
+        "🔌 MCP Server",
     ])
     st.markdown("---")
     st.markdown("**Project Stack**")
@@ -2082,3 +2088,420 @@ elif page == "📋 Loan Decision Report":
             file_name=f"loan_report_{month_raw.replace('-','')}.txt",
             mime="text/plain",
         )
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE — FINANCIAL ADVISOR CHAT
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "💬 Conseiller Financier IA":
+    st.title("Conseiller Financier IA")
+    st.markdown(
+        "Posez vos questions sur vos finances en **français ou en anglais**. "
+        "Le conseiller répond uniquement à partir de vos données réelles — "
+        "aucune information ne quitte votre machine."
+    )
+
+    # ── Ollama availability check ──────────────────────────────────────────────
+    import requests as _req
+    _ollama_ok = False
+    try:
+        _resp = _req.get("http://localhost:11434/api/tags", timeout=2)
+        _ollama_ok = _resp.status_code == 200
+    except Exception:
+        pass
+
+    if not _ollama_ok:
+        st.warning(
+            "Ollama n'est pas détecté sur `localhost:11434`. "
+            "Lancez `ollama serve` puis `ollama pull mistral` pour activer le conseiller."
+        )
+
+    # ── Session state: conversation history ───────────────────────────────────
+    if "advisor_history" not in st.session_state:
+        st.session_state.advisor_history = []
+
+    # ── Controls ───────────────────────────────────────────────────────────────
+    col_info, col_clear = st.columns([4, 1])
+    with col_clear:
+        if st.button("Effacer la conversation", use_container_width=True):
+            st.session_state.advisor_history = []
+            st.rerun()
+
+    with col_info:
+        with st.expander("Exemples de questions"):
+            st.markdown(
+                "- Pourquoi mon score de crédit a baissé ce mois-ci ?\n"
+                "- Quelles sont mes dépenses les plus anormales ?\n"
+                "- Est-ce que je peux me permettre un loyer de 800€ ?\n"
+                "- What is my average monthly income over the last 3 months?\n"
+                "- Quels sont mes postes de dépenses les plus importants ?\n"
+                "- Show me my cashflow forecast for next month."
+            )
+
+    st.markdown("---")
+
+    # ── Display conversation history ───────────────────────────────────────────
+    for msg in st.session_state.advisor_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # ── Chat input ─────────────────────────────────────────────────────────────
+    user_input = st.chat_input(
+        "Posez votre question... / Ask your question...",
+        disabled=not _ollama_ok,
+    )
+
+    if user_input:
+        # Show user message immediately
+        st.session_state.advisor_history.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        # Stream spinner while LLM responds
+        with st.chat_message("assistant"):
+            with st.spinner("Analyse en cours..."):
+                from src.pipeline.financial_advisor import ask_advisor
+                answer = ask_advisor(
+                    question=user_input,
+                    history=st.session_state.advisor_history[:-1],  # exclude the message just added
+                )
+            st.markdown(answer)
+
+        st.session_state.advisor_history.append({"role": "assistant", "content": answer})
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT PAGE — FINANCIAL ADVISOR AGENT (ReAct, tool-calling)
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "🤖 Agent: Financial Advisor":
+    st.title("Financial Advisor Agent")
+    st.markdown(
+        "This agent uses **LangGraph ReAct** with native tool calling. "
+        "Instead of a single prompt, it **plans → fetches real data → reasons → answers**. "
+        "Every number in the response is fetched from a tool — not invented."
+    )
+
+    import requests as _req
+    _ollama_ok2 = False
+    try:
+        _ollama_ok2 = _req.get("http://localhost:11434/api/tags", timeout=2).status_code == 200
+    except Exception:
+        pass
+
+    if not _ollama_ok2:
+        st.warning("Ollama not running. Start with `ollama serve`.")
+
+    # RAG status
+    try:
+        from src.vectorstore.retriever import store_status as _vs_status_dash
+        _vs_stat = _vs_status_dash()
+        _rag_cols = st.columns(3)
+        for i, (coll, info) in enumerate(_vs_stat.items()):
+            with _rag_cols[i]:
+                if info["indexed"]:
+                    st.metric(f"Vector DB: {coll}", f"{info['size']} docs", delta="indexed")
+                else:
+                    st.metric(f"Vector DB: {coll}", "not indexed", delta=None)
+    except Exception:
+        pass
+
+    with st.expander("How it works"):
+        st.markdown("""
+**ReAct loop** (Reason + Act):
+1. Agent receives your question
+2. **RAG pre-fetch** — semantic search retrieves relevant transactions from the vector store
+3. It decides which tool(s) to call: `get_credit_profile`, `get_income_and_spend`, `search_transactions`, etc.
+4. Tools fetch real numbers from your xlsx data
+5. Agent reasons over the tool results and writes a grounded answer
+
+**Guardrails active:**
+- Max 6 tool calls per question (hard limit)
+- Post-answer grounding check — flags if no real numbers found in response
+- Ollama fallback — returns raw data context if LLM is down
+- `AdvisorAnswer` Pydantic schema enforced on every response
+- **Vector store** — 1226 transactions indexed for semantic search (MiniLM or nomic-embed-text)
+        """)
+
+    if "agent_advisor_history" not in st.session_state:
+        st.session_state.agent_advisor_history = []
+
+    col1, col2 = st.columns([4, 1])
+    with col2:
+        if st.button("Clear", use_container_width=True):
+            st.session_state.agent_advisor_history = []
+            st.rerun()
+    with col1:
+        with st.expander("Example questions"):
+            st.markdown(
+                "- Est-ce que je peux me permettre un loyer de 800€ ?\n"
+                "- What are my top spending categories?\n"
+                "- Quelles sont mes transactions anormales ?\n"
+                "- What is my cashflow forecast for next month?\n"
+                "- Analyse my credit risk and explain why.\n"
+                "- Find all large transfers in November 2025\n"
+                "- Did I pay for any streaming subscriptions?"
+            )
+
+    st.markdown("---")
+
+    for msg in st.session_state.agent_advisor_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            if msg.get("tools_used"):
+                st.caption(f"Tools used: {', '.join(msg['tools_used'])} | Confidence: {msg.get('confidence','?')}")
+
+    user_q = st.chat_input("Ask the agent...", disabled=not _ollama_ok2)
+
+    if user_q:
+        st.session_state.agent_advisor_history.append({"role": "user", "content": user_q})
+        with st.chat_message("user"):
+            st.markdown(user_q)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Agent reasoning and fetching data..."):
+                from src.agents.financial_advisor_agent import run_advisor_agent
+                result = run_advisor_agent(
+                    question=user_q,
+                    history=st.session_state.agent_advisor_history[:-1],
+                )
+            st.markdown(result.answer)
+            cols = st.columns(3)
+            cols[0].metric("Tools used", len(result.tools_used))
+            cols[1].metric("Data grounded", "Yes" if result.data_grounded else "No")
+            cols[2].metric("Confidence", result.confidence)
+            if result.tools_used:
+                st.caption(f"Tools called: {', '.join(result.tools_used)}")
+
+        st.session_state.agent_advisor_history.append({
+            "role": "assistant",
+            "content": result.answer,
+            "tools_used": result.tools_used,
+            "confidence": result.confidence,
+        })
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT PAGE — ANOMALY INVESTIGATOR AGENT
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "🔎 Agent: Anomaly Investigator":
+    st.title("Anomaly Investigator Agent")
+    st.markdown(
+        "This agent **investigates each flagged transaction individually** using "
+        "a ReAct loop with 4 data tools. It produces a structured verdict "
+        "(LOW / MEDIUM / HIGH) with a reason grounded in real statistics."
+    )
+
+    with st.expander("How it works"):
+        st.markdown("""
+**Per-transaction investigation loop:**
+1. `get_category_stats` — what is the normal spend in this category?
+2. `get_similar_amount_history` — has this exact amount appeared before?
+3. `get_month_anomaly_context` — was this month generally suspicious?
+4. `get_category_anomaly_rate` — how anomaly-prone is this category?
+5. Agent reasons → emits `{"suspicion": "HIGH", "action": "FLAG_FOR_AUDIT", "reason": "..."}`
+
+**Guardrails:**
+- `AnomalyVerdict` Pydantic model enforces suspicion ∈ {LOW, MEDIUM, HIGH}
+- `action` ∈ {MONITOR, REVIEW, FLAG_FOR_AUDIT}
+- `reason` must contain at least one number (validated by field_validator)
+- Rule-based fallback if Ollama is down
+        """)
+
+    top_n = st.slider("Transactions to investigate", min_value=1, max_value=20, value=5)
+
+    import requests as _req2
+    _ollama_ok3 = False
+    try:
+        _ollama_ok3 = _req2.get("http://localhost:11434/api/tags", timeout=2).status_code == 200
+    except Exception:
+        pass
+
+    if not _ollama_ok3:
+        st.warning("Ollama not running — rule-based fallback will be used.")
+
+    if st.button("Run Investigation", type="primary", disabled=False):
+        with st.spinner(f"Investigating top {top_n} anomalies..."):
+            from src.agents.anomaly_investigator import run_investigation
+            report = run_investigation(top_n=top_n)
+
+        st.success(report.summary)
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total flagged",  report.total_flagged)
+        col2.metric("Investigated",   report.investigated)
+        col3.metric("HIGH suspicion", report.high_count)
+        col4.metric("Need review",    report.review_count)
+
+        st.markdown("### Verdicts")
+        for v in report.verdicts:
+            color = {"HIGH": "red", "MEDIUM": "orange", "LOW": "green"}.get(v.suspicion.value, "gray")
+            icon  = {"HIGH": "🔴", "MEDIUM": "🟠", "LOW": "🟢"}.get(v.suspicion.value, "⚪")
+            with st.expander(f"{icon} {v.date} | EUR{v.amount_eur:,.0f} | {v.category} | {v.action}"):
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Suspicion", v.suspicion.value)
+                c2.metric("Action",    v.action)
+                c3.metric("Amount",    f"EUR{v.amount_eur:,.0f}")
+                st.markdown(f"**Description:** {v.description}")
+                st.info(f"**Reason:** {v.reason}")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT PAGE — PIPELINE SUPERVISOR AGENT
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "⚙️ Agent: Pipeline Supervisor":
+    st.title("Pipeline Supervisor Agent")
+    st.markdown(
+        "The supervisor runs the full ML pipeline and uses an **LLM to reason about failures**. "
+        "On error it decides: **RETRY / SKIP / HALT** — with hard guardrails that always override the LLM."
+    )
+
+    with st.expander("Guardrails in effect"):
+        st.markdown("""
+| Guardrail | Rule |
+|-----------|------|
+| Max retries | Never more than 2 retries per stage (hard code limit) |
+| No-retry stages | `parse_statements` is never retried (data integrity risk) |
+| LLM override | Code guardrails always win over LLM decision |
+| Ollama fallback | If LLM down: optional→SKIP, required→HALT (deterministic) |
+| Pydantic schema | `PipelineReport` validated before writing to disk |
+        """)
+
+    col_a, col_b = st.columns(2)
+    from_stage = col_a.number_input("Start from stage", min_value=1, max_value=10, value=1)
+    only_stage = col_b.text_input("Only stage (leave blank for all)", value="")
+
+    if st.button("Run Supervised Pipeline", type="primary"):
+        st.warning("This will re-run the ML pipeline. It may take several minutes.")
+        progress = st.progress(0, text="Starting...")
+
+        with st.spinner("Pipeline running with AI supervision..."):
+            from src.agents.pipeline_supervisor import run_supervised_pipeline, STAGES
+            report = run_supervised_pipeline(
+                from_stage=int(from_stage),
+                only_stage=only_stage.strip() or None,
+            )
+
+        status_color = {"HEALTHY": "success", "DEGRADED": "warning", "FAILED": "error"}
+        getattr(st, status_color.get(report.overall_status, "info"))(report.incident_summary)
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Succeeded",     report.succeeded)
+        c2.metric("Failed",        report.failed)
+        c3.metric("Auto-recovered",report.auto_recovered)
+        c4.metric("Skipped",       report.skipped)
+
+        st.markdown("### Stage-by-stage results")
+        icons = {"SUCCESS":"✅","RETRIED":"🔄","SKIPPED":"⏭️","FAILED":"❌","DEGRADED":"⚠️"}
+        for s in report.stages:
+            icon = icons.get(s.outcome.value, "?")
+            with st.expander(f"{icon} Stage {s.stage_id}: {s.stage_name} — {s.outcome.value}"):
+                if s.retries:
+                    st.metric("Retries", s.retries)
+                if s.note:
+                    st.info(s.note)
+                if s.error:
+                    st.error(s.error)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+if page == "🔌 MCP Server":
+    st.title("MCP Server — Model Context Protocol")
+    st.markdown(
+        "The **Finance MCP Server** exposes all 10 analysis tools via the "
+        "[Model Context Protocol](https://modelcontextprotocol.io), allowing "
+        "**Claude Desktop** and any MCP-compatible LLM to call them directly."
+    )
+
+    # Tool list
+    st.markdown("### Available MCP Tools")
+    _mcp_tools = [
+        ("get_credit_profile",          "Credit score, DSCR, savings rate — last 6 months"),
+        ("get_income_and_spend",         "Average monthly income & spend — last 3 months"),
+        ("get_cashflow_forecast",        "ML ensemble forecast (Ridge, RF, XGBoost, GB) for next month"),
+        ("get_top_spending_categories",  "Top 10 spending categories by total amount"),
+        ("get_anomalies",                "Top 10 anomalous transactions flagged by ML ensemble"),
+        ("get_monthly_trend",            "Month-by-month income/spend/net — last 6 months"),
+        ("evaluate_affordability",       "Can I afford EUR X/month? Verdict + breakdown"),
+        ("search_transactions",          "Semantic vector search across all 1226 transactions"),
+        ("get_pipeline_status",          "Status of last supervised pipeline run"),
+        ("get_anomaly_investigation",    "AI ReAct agent verdict for top-N anomalies"),
+    ]
+    for name, desc in _mcp_tools:
+        st.markdown(f"- **`{name}`** — {desc}")
+
+    st.markdown("---")
+
+    # Vector store status
+    st.markdown("### Vector Store Status")
+    try:
+        from src.vectorstore.retriever import store_status as _mcp_vs_status
+        _mcp_stat = _mcp_vs_status()
+        _mcp_cols = st.columns(3)
+        for i, (coll, info) in enumerate(_mcp_stat.items()):
+            with _mcp_cols[i]:
+                if info["indexed"]:
+                    st.metric(coll, f"{info['size']} docs", delta="indexed")
+                else:
+                    st.metric(coll, "not indexed")
+        if not any(v["indexed"] for v in _mcp_stat.values()):
+            st.warning("Vector store not indexed. Run: `py -3 -m src.vectorstore.indexer`")
+    except Exception as _e:
+        st.error(f"Could not load vector store status: {_e}")
+
+    st.markdown("---")
+
+    # Claude Desktop config
+    st.markdown("### Claude Desktop Configuration")
+    st.markdown(
+        "Copy `claude_desktop_config.json` (project root) to "
+        "`%APPDATA%\\\\Claude\\\\claude_desktop_config.json`, then restart Claude Desktop."
+    )
+    import json as _json_mcp
+    _config = {
+        "mcpServers": {
+            "finance": {
+                "command": "py",
+                "args": ["-3", "-m", "src.mcp.finance_mcp_server"],
+                "cwd": "C:\\\\Users\\\\ktayl\\\\Desktop\\\\devprojectall\\\\FinanceProjects",
+            }
+        }
+    }
+    st.code(_json_mcp.dumps(_config, indent=2), language="json")
+
+    st.markdown("---")
+
+    # Run HTTP server
+    st.markdown("### Run as HTTP Server")
+    st.code("py -3 -m src.mcp.finance_mcp_server --http --port 8052", language="bash")
+    st.markdown("Then connect any MCP client to `http://localhost:8052/mcp`")
+
+    # Quick tool test
+    st.markdown("---")
+    st.markdown("### Quick Tool Test")
+    _test_tool = st.selectbox("Select tool to test", [t[0] for t in _mcp_tools])
+    _test_arg = ""
+    if _test_tool in ("evaluate_affordability",):
+        _test_arg = st.number_input("Monthly cost (EUR)", value=800.0)
+    elif _test_tool == "search_transactions":
+        _test_arg = st.text_input("Search query", value="Netflix subscription")
+    elif _test_tool == "get_anomaly_investigation":
+        _test_arg = st.slider("Top N anomalies", 1, 5, 3)
+
+    if st.button("Call Tool", type="primary"):
+        import asyncio as _asyncio
+        from src.mcp.finance_mcp_server import mcp as _finance_mcp
+
+        async def _call():
+            kwargs = {}
+            if _test_tool == "evaluate_affordability":
+                kwargs = {"monthly_cost": float(_test_arg)}
+            elif _test_tool == "search_transactions":
+                kwargs = {"query": str(_test_arg), "top_k": 8}
+            elif _test_tool == "get_anomaly_investigation":
+                kwargs = {"top_n": int(_test_arg)}
+            result = await _finance_mcp.call_tool(_test_tool, kwargs)
+            for r in result:
+                if hasattr(r, "text"):
+                    return r.text
+            return str(result)
+
+        with st.spinner(f"Calling {_test_tool}..."):
+            try:
+                _out = _asyncio.run(_call())
+                st.code(_out, language="text")
+            except Exception as _err:
+                st.error(f"Tool call failed: {_err}")

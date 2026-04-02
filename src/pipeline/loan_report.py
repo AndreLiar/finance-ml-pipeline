@@ -4,7 +4,7 @@ Loan Decision Report Generator
 Reads the output of creditworthiness.py, retrains the ensemble model,
 then calls an LLM to write a professional bank-style loan decision report.
 
-Demonstrates: Deterministic ML (label + numbers) → Probabilistic narrative (LLM prose)
+Demonstrates: Deterministic ML (label + numbers) -> Probabilistic narrative (LLM prose)
 
 Pipeline position: run AFTER creditworthiness.py
 Input : data/creditworthiness_results.xlsx
@@ -46,7 +46,7 @@ from src.logger import get_logger
 log = get_logger(__name__)
 
 # ── Prompt template ────────────────────────────────────────────────────────────
-PROMPT_TEMPLATE_PATH = ROOT / "src" / "prompts" / "loan_report_v1.txt"
+PROMPT_TEMPLATE_PATH = ROOT / "src" / "prompts" / "loan_report_v2.txt"
 
 # Must stay in sync with creditworthiness.py CREDIT_FEATURES
 CREDIT_FEATURES = [
@@ -400,6 +400,11 @@ def validate_report_numbers(report_text: str, ctx: dict) -> list[str]:
                     found = float(num_str)
                     if found == 0:
                         continue
+                    # Skip small integers — they are almost certainly ordinals,
+                    # section numbers, word counts, or month counts (e.g. "3-month"),
+                    # not financial figures. Real monetary amounts are >= 10.
+                    if found < 10:
+                        continue
                     ratio = abs(found - expected_scaled) / expected_scaled
                     if ratio > 0.15:
                         msg = (
@@ -409,7 +414,7 @@ def validate_report_numbers(report_text: str, ctx: dict) -> list[str]:
                         )
                         warnings_found.append(msg)
                         log.warning(msg)
-                    break  # only check first number per keyword match
+                    break  # only check first qualifying number per keyword match
                 break  # first keyword match is sufficient
 
     return warnings_found
@@ -530,7 +535,7 @@ def save_report(report_text: str, ctx: dict, validation_warnings: list[str]):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
         raise
-    log.info("Excel updated: %s → sheet 'Loan Decision Report'", OUTPUT_EXCEL)
+    log.info("Excel updated: %s -> sheet 'Loan Decision Report'", OUTPUT_EXCEL)
 
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────

@@ -44,8 +44,8 @@ MODELS_DIR = ROOT / "models"
 # ── LLM settings ──────────────────────────────────────────────────────────────
 # LLM: local Ollama only — personal financial data must not leave the machine
 LLM_MODEL   = "mistral"
-LLM_TEMPERATURE = 0.3
-LLM_MAX_TOKENS  = 1800
+LLM_TEMPERATURE = 0.2     # lowered from 0.3 — more deterministic, fewer hallucinations
+LLM_MAX_TOKENS  = 2000
 
 # ── Data date bounds (for validation) ─────────────────────────────────────────
 DATA_DATE_MIN = "2020-01-01"

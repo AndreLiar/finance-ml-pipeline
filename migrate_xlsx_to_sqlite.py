@@ -8,31 +8,31 @@ The script is idempotent: running it again will replace existing tables
 (IF_EXISTS='replace'), so it is safe to re-run after a fresh pipeline run.
 
 Table naming convention:
-  transactions          ← transactions.xlsx (Sheet: Transactions)
-  livret_a              ← livret_a_transactions.xlsx
-  features_full         ← features.xlsx / Full Data
-  feature_matrix        ← features.xlsx / Feature Matrix
-  monthly_aggregates    ← features.xlsx / Monthly Aggregates
-  category_summary      ← features.xlsx / Category Summary
-  model_comparison      ← model_results.xlsx / Model Comparison
-  lr_report             ← model_results.xlsx / Logistic Regression Report
-  rf_report             ← model_results.xlsx / Random Forest Report
-  xgb_report            ← model_results.xlsx / XGBoost Report
-  confusion_matrix      ← model_results.xlsx / Confusion Matrix
-  rf_feature_importance ← model_results.xlsx / RF Feature Importance
-  xgb_feature_importance← model_results.xlsx / XGB Feature Importance
-  cross_validation      ← model_results.xlsx / Cross Validation
-  nlp_results           ← nlp_results.xlsx / NLP Comparison
-  monthly_credit        ← creditworthiness_results.xlsx / Monthly Credit Profile
-  credit_scores         ← creditworthiness_results.xlsx / Credit Scores
-  credit_features       ← creditworthiness_results.xlsx / Credit Features
-  credit_summary        ← creditworthiness_results.xlsx / Credit Summary
-  cashflow_metrics      ← cashflow_results.xlsx / Regression Metrics
-  cashflow_predictions  ← cashflow_results.xlsx / Actual vs Predicted
-  cashflow_forecast     ← cashflow_results.xlsx / Next Month Forecast
-  cashflow_features_imp ← cashflow_results.xlsx / Feature Importance
-  anomaly_results       ← anomaly_results.xlsx / Anomaly Results
-  anomaly_summary       ← anomaly_results.xlsx / Summary
+  transactions          <- transactions.xlsx (Sheet: Transactions)
+  livret_a              <- livret_a_transactions.xlsx
+  features_full         <- features.xlsx / Full Data
+  feature_matrix        <- features.xlsx / Feature Matrix
+  monthly_aggregates    <- features.xlsx / Monthly Aggregates
+  category_summary      <- features.xlsx / Category Summary
+  model_comparison      <- model_results.xlsx / Model Comparison
+  lr_report             <- model_results.xlsx / Logistic Regression Report
+  rf_report             <- model_results.xlsx / Random Forest Report
+  xgb_report            <- model_results.xlsx / XGBoost Report
+  confusion_matrix      <- model_results.xlsx / Confusion Matrix
+  rf_feature_importance <- model_results.xlsx / RF Feature Importance
+  xgb_feature_importance<- model_results.xlsx / XGB Feature Importance
+  cross_validation      <- model_results.xlsx / Cross Validation
+  nlp_results           <- nlp_results.xlsx / NLP Comparison
+  monthly_credit        <- creditworthiness_results.xlsx / Monthly Credit Profile
+  credit_scores         <- creditworthiness_results.xlsx / Credit Scores
+  credit_features       <- creditworthiness_results.xlsx / Credit Features
+  credit_summary        <- creditworthiness_results.xlsx / Credit Summary
+  cashflow_metrics      <- cashflow_results.xlsx / Regression Metrics
+  cashflow_predictions  <- cashflow_results.xlsx / Actual vs Predicted
+  cashflow_forecast     <- cashflow_results.xlsx / Next Month Forecast
+  cashflow_features_imp <- cashflow_results.xlsx / Feature Importance
+  anomaly_results       <- anomaly_results.xlsx / Anomaly Results
+  anomaly_summary       <- anomaly_results.xlsx / Summary
 """
 
 import sqlite3
@@ -69,7 +69,7 @@ def write(con: sqlite3.Connection, table: str, df: pd.DataFrame | None):
 def migrate():
     DATA_DIR.mkdir(exist_ok=True)
     print("=" * 60)
-    print("MIGRATING .xlsx → data/finance.db")
+    print("MIGRATING .xlsx -> data/finance.db")
     print("=" * 60)
 
     con = sqlite3.connect(FINANCE_DB)
@@ -127,7 +127,7 @@ def migrate():
 
     size_kb = FINANCE_DB.stat().st_size / 1024
     print(f"\n{'='*60}")
-    print(f"Migration complete → {FINANCE_DB}")
+    print(f"Migration complete -> {FINANCE_DB}")
     print(f"Database size: {size_kb:.1f} KB")
     print(f"{'='*60}")
 

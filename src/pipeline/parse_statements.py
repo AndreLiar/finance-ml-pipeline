@@ -35,7 +35,7 @@ BALANCE_RE = re.compile(
 )
 
 def extract_year_from_filename(filename: str) -> str:
-    """Pull year from filename like '...20221108...' → '2022'"""
+    """Pull year from filename like '...20221108...' -> '2022'"""
     match = re.search(r'(\d{4})\d{4}-', filename)
     return match.group(1) if match else "2022"
 
@@ -267,7 +267,7 @@ def main():
         print(f"Parsing: {pdf_path.name[:60]}...")
         try:
             txs = parse_pdf(pdf_path)
-            log.info("Parsed %s → %d transactions", pdf_path.name, len(txs))
+            log.info("Parsed %s -> %d transactions", pdf_path.name, len(txs))
             print(f"  -> {len(txs)} transactions extracted")
             all_transactions.extend(txs)
         except Exception as e:
@@ -337,7 +337,7 @@ def main():
     # ── Write to SQLite ───────────────────────────────────────────────────────
     write_table(df.drop(columns=['year_month']), "transactions")
     write_table(monthly, "tx_monthly_summary")
-    log.info("Saved %d transactions → %s + SQLite", len(df), OUTPUT_EXCEL)
+    log.info("Saved %d transactions -> %s + SQLite", len(df), OUTPUT_EXCEL)
 
     # Summary
     print(f"\n{'='*55}")

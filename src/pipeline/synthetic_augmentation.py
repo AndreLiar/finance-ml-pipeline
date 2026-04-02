@@ -159,10 +159,10 @@ def save_synthetic(synthetic_df: pd.DataFrame):
     SYNTHETIC_XLSX.parent.mkdir(parents=True, exist_ok=True)
     with pd.ExcelWriter(SYNTHETIC_XLSX, engine='openpyxl') as writer:
         synthetic_df.to_excel(writer, sheet_name='Synthetic Monthly', index=False)
-    log.info("Saved %d rows → %s", len(synthetic_df), SYNTHETIC_XLSX)
+    log.info("Saved %d rows -> %s", len(synthetic_df), SYNTHETIC_XLSX)
 
     write_table(synthetic_df, "synthetic_monthly")
-    log.info("Saved → SQLite table 'synthetic_monthly'")
+    log.info("Saved -> SQLite table 'synthetic_monthly'")
 
 
 def main():

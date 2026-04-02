@@ -32,7 +32,7 @@ log = get_logger(__name__)
 DRIFT_COLUMNS = ['amount', 'debit', 'credit']
 
 # Proportion of columns showing drift that triggers a pipeline warning
-DRIFT_THRESHOLD_RATIO = 0.5    # ≥50% of columns drifted → warning
+DRIFT_THRESHOLD_RATIO = 0.5    # >=50% of columns drifted -> warning
 
 # Output paths
 _DATA_DIR    = Path(__file__).parent / "data"
@@ -79,7 +79,7 @@ def split_reference_current(df: pd.DataFrame):
     current_df   = df[df['year_month'] == current_month].copy()
     reference_df = df[df['year_month'].isin(reference_months)].copy()
 
-    log.info("Drift check: reference=%d months (%s→%s), current=%s (%d rows)",
+    log.info("Drift check: reference=%d months (%s->%s), current=%s (%d rows)",
              len(reference_months), reference_months[0], reference_months[-1],
              current_month, len(current_df))
 
@@ -149,7 +149,7 @@ def run_drift_report(reference_df: pd.DataFrame, current_df: pd.DataFrame,
 def update_pipeline_status(drift_summary: dict, current_month: str):
     """
     Append drift results to pipeline_status.json.
-    If ≥50% of checked columns drifted, mark drift_warning=True.
+    If >=50% of checked columns drifted, mark drift_warning=True.
     """
     if not drift_summary:
         log.info("No drift summary to write.")

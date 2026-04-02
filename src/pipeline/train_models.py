@@ -176,10 +176,13 @@ for name, model in models.items():
     roc_str = f"{roc_auc:.4f}" if roc_auc else "N/A"
     print(f"    Test Accuracy: {test_acc:.4f}  |  F1 Weighted: {test_f1_w:.4f}  |  ROC-AUC: {roc_str}")
 
-    # Full classification report
+    # Full classification report — use labels= to handle classes absent from test split
+    present_labels = sorted(set(y_test) | set(y_test_pred))
+    present_names  = [class_names[i] for i in present_labels]
     report = classification_report(
         y_test, y_test_pred,
-        target_names=class_names,
+        labels=present_labels,
+        target_names=present_names,
         output_dict=True
     )
     all_reports[name] = report
@@ -262,9 +265,11 @@ print(best_report_df.to_string(index=False))
 
 best_model    = results[best_model_name]['model']
 Xts_best      = X_test_s if best_model_name == "Logistic Regression" else X_test
-y_test_pred   = best_model.predict(Xts_best)
-cm            = confusion_matrix(y_test, y_test_pred)
-cm_df         = pd.DataFrame(cm, index=class_names, columns=class_names)
+y_test_pred      = best_model.predict(Xts_best)
+present_labels   = sorted(set(y_test) | set(y_test_pred))
+present_names    = [class_names[i] for i in present_labels]
+cm               = confusion_matrix(y_test, y_test_pred, labels=present_labels)
+cm_df            = pd.DataFrame(cm, index=present_names, columns=present_names)
 
 # ── 10. GROUND TRUTH EVALUATION (manual_labels.csv) ──────────────────────────
 
@@ -307,9 +312,9 @@ if _manual_path.exists():
             _gt_f1 = _gt_results.get(best_model_name)
             print(f"\n  Best model ({best_model_name}) ground truth F1: {_gt_f1:.4f}")
         else:
-            print(f"  Only {len(_gt_merged)} labeled rows matched feature matrix — need ≥ 5, skipping.")
+            print(f"  Only {len(_gt_merged)} labeled rows matched feature matrix — need >= 5, skipping.")
     else:
-        print(f"\n[Ground truth] {len(_manual)} labeled rows in manual_labels.csv — need ≥ 10, skipping evaluation.")
+        print(f"\n[Ground truth] {len(_manual)} labeled rows in manual_labels.csv — need >= 10, skipping evaluation.")
 else:
     print("\n[Ground truth] data/manual_labels.csv not found — skipping. Label it and re-run to get ground truth F1.")
 
@@ -379,7 +384,7 @@ write_table(xgb_importance,  "xgb_feature_importance")
 write_table(cv_df,           "cross_validation")
 write_table(cm_df.reset_index().rename(columns={"index": "Class"}), "confusion_matrix")
 
-log.info("Training complete → %s", OUTPUT_EXCEL)
+log.info("Training complete -> %s", OUTPUT_EXCEL)
 print(f"\n{'='*60}")
 print(f"TRAINING COMPLETE")
 print(f"{'='*60}")

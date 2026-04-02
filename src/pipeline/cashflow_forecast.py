@@ -176,7 +176,7 @@ selected_features = [ALL_FEATURES[i] for i in selector.get_support(indices=True)
 print(f"\nTime-series split:")
 print(f"  Train: {n_train} months ({monthly_clean['year_month'].iloc[0]} – {monthly_clean['year_month'].iloc[n_train-1]})")
 print(f"  Test : {n_test}  months ({monthly_clean['year_month'].iloc[n_train]} – {monthly_clean['year_month'].iloc[-1]})")
-print(f"\nFeature selection: {len(ALL_FEATURES)} → {K_BEST} features (SelectKBest)")
+print(f"\nFeature selection: {len(ALL_FEATURES)} -> {K_BEST} features (SelectKBest)")
 print(f"  Selected: {selected_features}")
 
 # ── 5. EVALUATION HELPER ──────────────────────────────────────────────────────
@@ -383,7 +383,7 @@ write_table(pred_df,     "cashflow_predictions")
 write_table(forecast_df, "cashflow_forecast")
 write_table(fi_df,       "cashflow_feature_imp")
 write_table(sel_df,      "cashflow_selected_features")
-log.info("Cashflow forecast complete → %s", OUTPUT_EXCEL)
+log.info("Cashflow forecast complete -> %s", OUTPUT_EXCEL)
 
 print(f"\nResults saved to: {OUTPUT_EXCEL}")
 print("\nSheets:")
